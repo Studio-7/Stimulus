@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -48,6 +49,7 @@ public class TransactionsFragment extends Fragment {
     private Token token;
     private Button sendBtn, recvBtn;
     private EditText valueIp;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     @Nullable
     @Override
@@ -57,6 +59,21 @@ public class TransactionsFragment extends Fragment {
         mProgress = mView.findViewById(R.id.progress);
         mBalance = mView.findViewById(R.id.balance);
         valueIp = mView.findViewById(R.id.stm);
+        mSwipeRefreshLayout = mView.findViewById(R.id.refresh);
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        transactionsList.clear();
+                        makeAPICall(getString(R.string.etherscan_url));
+                    }
+                }).start();
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
+        });
 
         sendBtn = (Button) mView.findViewById(R.id.send_btn);
         sendBtn.setOnClickListener(new View.OnClickListener() {

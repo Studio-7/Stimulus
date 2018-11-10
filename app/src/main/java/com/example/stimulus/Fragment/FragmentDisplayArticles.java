@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.stimulus.API.Model.Children.Children;
@@ -31,6 +32,8 @@ public class FragmentDisplayArticles extends Fragment {
     private static final String BASE_URL = "https://www.reddit.com/";
     FragmentActivity fragmentBelongActivity = null;
     ArrayList<NewsArticle> articles;
+    RecyclerView recyclerView;
+    ProgressBar mProgress;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -41,8 +44,27 @@ public class FragmentDisplayArticles extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View retView = inflater.inflate(R.layout.fragment_news_adapter, null, false);
         fragmentBelongActivity = (FragmentActivity) getActivity();
+        recyclerView = (RecyclerView) retView.findViewById(R.id.recycler_view);
+        mProgress = retView.findViewById(R.id.progress);
+        recyclerView.setVisibility(View.INVISIBLE);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                makeAPICall();
+            }
+        }).start();
+        return retView;
+    }
 
-        final RecyclerView recyclerView = (RecyclerView) retView.findViewById(R.id.recycler_view);
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+
+
+
+    }
+
+    public void makeAPICall() {
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -66,6 +88,17 @@ public class FragmentDisplayArticles extends Fragment {
 
 
                 }
+                final NewsAdapter adapter = new NewsAdapter(fragmentBelongActivity, articles);
+                RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(fragmentBelongActivity);
+                recyclerView.setLayoutManager(mLayoutManager);
+                recyclerView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mProgress.setVisibility(View.GONE);
+                        recyclerView.setVisibility(View.VISIBLE);
+                        recyclerView.setAdapter(adapter);
+                    }
+                });
             }
 
             @Override
@@ -73,19 +106,6 @@ public class FragmentDisplayArticles extends Fragment {
                 Toast.makeText(fragmentBelongActivity, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });
-
-        NewsAdapter adapter = new NewsAdapter(fragmentBelongActivity, articles);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(fragmentBelongActivity);
-        recyclerView.setLayoutManager(mLayoutManager);
-        recyclerView.setAdapter(adapter);
-
-        return retView;
-    }
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-
-
 
     }
 

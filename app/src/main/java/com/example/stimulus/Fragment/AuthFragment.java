@@ -1,7 +1,10 @@
 package com.example.stimulus.Fragment;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -18,6 +21,7 @@ import android.widget.Toast;
 import com.example.stimulus.Activity.AccountActivity;
 import com.example.stimulus.Activity.MainActivity;
 import com.example.stimulus.R;
+import com.example.stimulus.Utils.FileUtils;
 import com.example.stimulus.Utils.TokenHandler;
 import com.example.stimulus.contracts.Token;
 
@@ -49,36 +53,57 @@ public class AuthFragment extends Fragment {
         mView = inflater.inflate(R.layout.fragment_auth, container, false);
         mSubmit = (Button) mView.findViewById(R.id.submit);
         password = (EditText) mView.findViewById(R.id.password);
+        requestPermission();
 
         TokenHandler.tokenAddress = getString(R.string.token_address);
 
+
         mSubmit.setVisibility(View.GONE);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    String infuraAPI = getString(R.string.infura_api);
-                    web3j = Web3jFactory.build(new HttpService("https://ropsten.infura.io/v3/"+infuraAPI));
-                    TokenHandler.web3j = web3j;
-                    Log.d(TAG, "onCreate: " + web3j.web3ClientVersion().sendAsync().get().getWeb3ClientVersion());
-                    Log.d(TAG, "run: ");
-                    mSubmit.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Log.d(TAG, "run: Enabled");
-                            mSubmit.setVisibility(View.VISIBLE);
-                            initializeButton();
-                            Log.d(TAG, "run: Initialized");
-                        }
-                    });
-                }catch (Exception e) {
-                    Log.e(TAG, "onCreate: "+e.getMessage());
+        if (checkWriteStoragePermission()) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String infuraAPI = getString(R.string.infura_api);
+                        web3j = Web3jFactory.build(new HttpService("https://ropsten.infura.io/v3/" + infuraAPI));
+                        TokenHandler.web3j = web3j;
+                        Log.d(TAG, "onCreate: " + web3j.web3ClientVersion().sendAsync().get().getWeb3ClientVersion());
+                        Log.d(TAG, "run: ");
+                        mSubmit.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.d(TAG, "run: Enabled");
+                                mSubmit.setVisibility(View.VISIBLE);
+                                initializeButton();
+                                Log.d(TAG, "run: Initialized");
+                            }
+                        });
+                    } catch (Exception e) {
+                        Log.e(TAG, "onCreate: " + e.getMessage());
+                    }
                 }
-            }
-        }).start();
+            }).start();
 
-
+        }
         return mView;
+    }
+
+    private boolean checkWriteStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (getContext().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void requestPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            this.requestPermissions(
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    10);
+        }
     }
 
     private void initializeButton() {
@@ -94,6 +119,14 @@ public class AuthFragment extends Fragment {
                     String filename = preferences.getString("File", "");
                     if(TextUtils.isEmpty(filename)) {
                         filename = WalletUtils.generateNewWalletFile(password.getText().toString(), getContext().getDir("wallets", MODE_PRIVATE), false);
+                        final String finalFilename = filename;
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.d(TAG, "onClick: Filename "+ getContext().getDir("wallets", MODE_PRIVATE) + "/" + finalFilename);
+                                FileUtils.copyFile(getContext().getDir("wallets", MODE_PRIVATE) + "/" + finalFilename, finalFilename);
+                            }
+                        }).start();
                         SharedPreferences.Editor editor = preferences.edit();
                         editor.putString("File", filename);
                         editor.apply();
