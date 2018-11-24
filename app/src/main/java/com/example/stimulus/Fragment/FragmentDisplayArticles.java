@@ -6,8 +6,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
@@ -36,9 +40,11 @@ public class FragmentDisplayArticles extends Fragment {
     RecyclerView recyclerView;
     ProgressBar mProgress;
     private APIPost mAPIPost;
+    private SearchView mSearchView;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
         articles = new ArrayList<>();
     }
@@ -50,6 +56,7 @@ public class FragmentDisplayArticles extends Fragment {
         mProgress = retView.findViewById(R.id.progress);
         recyclerView.setVisibility(View.INVISIBLE);
         mAPIPost = APIUtils.getAPIService();
+        mSearchView = (SearchView) retView.findViewById(R.id.action_search);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -64,9 +71,94 @@ public class FragmentDisplayArticles extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        //inflater.inflate(R.menu.main, menu);
+        MenuItem item = menu.findItem(R.id.action_search);
+        mSearchView = (SearchView) item.getActionView();
+        mSearchView.setQueryHint("Enter Article title");
+        mSearchView.setSubmitButtonEnabled(true);
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(final String s) {
+                mProgress.setVisibility(View.VISIBLE);
+                recyclerView.setVisibility(View.INVISIBLE);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("123", "zfhkjzflk");
+                        searchAPICall(s);
+                    }
+                }).start();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(final String s) {
+                return false;
+            }
+        });
+        mSearchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                NewsAdapter newsAdapter = new NewsAdapter(fragmentBelongActivity, articles);
+                recyclerView.setAdapter(newsAdapter);
+                return false;
+            }
+        });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void searchAPICall(String search) {
+
+        Call<Data> call = mAPIPost.getSearchResult("http://35.229.66.18:3000/news/search/" + search);
+        call.enqueue(new Callback<Data>() {
+            @Override
+            public void onResponse(Call<Data> call, Response<Data> response) {
+                ArrayList<NewsArticle> search = new ArrayList<>();
+                ArrayList<News> news = response.body().getNews();
+                for( int i = 0; i < news.size(); i++){
+
+                    String id = news.get(i).get_id();
+                    String author = news.get(i).getAuthor();
+                    String title = news.get(i).getTitle();
+                    NewsArticle newsArticle = new NewsArticle(id, title, author, R.drawable.news1);
+                    search.add(newsArticle);
 
 
+                }
+
+                final NewsAdapter adapter = new NewsAdapter(fragmentBelongActivity, search);
+                RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(fragmentBelongActivity);
+                recyclerView.setLayoutManager(mLayoutManager);
+                recyclerView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mProgress.setVisibility(View.GONE);
+                        recyclerView.setVisibility(View.VISIBLE);
+                        recyclerView.setAdapter(adapter);
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Call<Data> call, Throwable t) {
+                t.printStackTrace();
+                Log.d("123", t.getMessage());
+                Toast.makeText(getContext(),"failed",Toast.LENGTH_LONG).show();
+            }
+
+        });
 
     }
 
@@ -135,10 +227,4 @@ public class FragmentDisplayArticles extends Fragment {
 
     }
 
-
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-    }
 }
