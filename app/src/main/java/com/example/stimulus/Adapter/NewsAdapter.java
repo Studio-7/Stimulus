@@ -1,6 +1,7 @@
 package com.example.stimulus.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -10,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.example.stimulus.Activity.ArticleWebView;
 import com.example.stimulus.Class.NewsArticle;
 import com.example.stimulus.R;
 
@@ -35,12 +37,21 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
     }
 
     @Override
-    public void onBindViewHolder(@NonNull NewsViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull NewsViewHolder holder, final int position) {
 
         NewsArticle article = mNewsArticleList.get(position);
         holder.title.setText(article.getArticleName());
         holder.summary.setText(article.getArticleSummary());
         Glide.with(mContext).load(article.getArticleThumbnail()).into(holder.article_thumbnail);
+        holder.article_thumbnail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(mContext, ArticleWebView.class);
+                intent.putExtra("id", mNewsArticleList.get(position).getArticleId());
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                mContext.startActivity(intent);
+            }
+        });
 
     }
 

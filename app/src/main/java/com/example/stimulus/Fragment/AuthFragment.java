@@ -18,7 +18,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.example.stimulus.Activity.AccountActivity;
 import com.example.stimulus.Activity.MainActivity;
 import com.example.stimulus.R;
 import com.example.stimulus.Utils.FileUtils;
@@ -47,6 +46,7 @@ public class AuthFragment extends Fragment {
     public static Credentials credentials;
     public static Web3j web3j;
     private SharedPreferences preferences;
+    //private APIPost mAPIPost;
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -83,6 +83,8 @@ public class AuthFragment extends Fragment {
                     }
                 }
             }).start();
+
+
 
         }
         return mView;
@@ -153,5 +155,22 @@ public class AuthFragment extends Fragment {
             }
         });
     }
+
+    /*public void sendPost(Sign.SignatureData signatureData) {
+        mAPIPost.savePost(signatureData).enqueue(new Callback<Data>() {
+            @Override
+            public void onResponse(Call<Data> call, Response<Data> response) {
+
+                if(response.isSuccessful()) {
+                    Log.e(TAG, "Successful");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Data> call, Throwable t) {
+                Log.e(TAG, "Unable to submit post to API.");
+            }
+        });
+    }*/
 
 }
