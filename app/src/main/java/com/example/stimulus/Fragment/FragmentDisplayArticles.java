@@ -6,26 +6,27 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.example.stimulus.API.Model.Children.Children;
-import com.example.stimulus.API.Model.Feed;
-import com.example.stimulus.API.RedditApi;
+import com.example.stimulus.API.APIPost;
+import com.example.stimulus.API.Model_POST_getNews.Data;
+import com.example.stimulus.API.Model_POST_getNews.News;
 import com.example.stimulus.Adapter.NewsAdapter;
 import com.example.stimulus.Class.NewsArticle;
 import com.example.stimulus.R;
+import com.example.stimulus.Utils.APIUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class FragmentDisplayArticles extends Fragment {
 
@@ -34,6 +35,7 @@ public class FragmentDisplayArticles extends Fragment {
     ArrayList<NewsArticle> articles;
     RecyclerView recyclerView;
     ProgressBar mProgress;
+    private APIPost mAPIPost;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -47,10 +49,15 @@ public class FragmentDisplayArticles extends Fragment {
         recyclerView = (RecyclerView) retView.findViewById(R.id.recycler_view);
         mProgress = retView.findViewById(R.id.progress);
         recyclerView.setVisibility(View.INVISIBLE);
+        mAPIPost = APIUtils.getAPIService();
         new Thread(new Runnable() {
             @Override
             public void run() {
-                makeAPICall();
+                try {
+                    makeAPICall();
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
             }
         }).start();
         return retView;
@@ -63,21 +70,24 @@ public class FragmentDisplayArticles extends Fragment {
 
     }
 
-    public void makeAPICall() {
+    public void makeAPICall() throws UnsupportedEncodingException {
 
-        Retrofit retrofit = new Retrofit.Builder()
+        /*Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
-                .build();
+                .build();*/
 
-        RedditApi redditAPI = retrofit.create(RedditApi.class);
-        Call<Feed> call = redditAPI.getData();
+        //RedditApi redditAPI = retrofit.create(RedditApi.class);
 
-        call.enqueue(new Callback<Feed>() {
+
+
+        Call<Data> call = mAPIPost.getData("0x68643896723021f581ec1106da242f3441276134e1667d528fd2459d717af7fc5e5e60463bbc200386b6dcdce553f6be5e06167818d29678d62e4c59a1e454161c", "Qi4RMIiv3YHGBoKZxMWhjfMu0PoOB4vv");
+
+        call.enqueue(new Callback<Data>() {
             @Override
-            public void onResponse(Call<Feed> call, Response<Feed> response) {
+            public void onResponse(Call<Data> call, Response<Data> response) {
 
-                ArrayList<Children> childrenList = response.body().getData().getChildren();
+                /*ArrayList<Children> childrenList = response.body().getData().getChildren();
                 for( int i = 0; i<childrenList.size(); i++){
 
 
@@ -87,7 +97,20 @@ public class FragmentDisplayArticles extends Fragment {
                     articles.add(newsArticle);
 
 
+                }*/
+
+                ArrayList<News> news = response.body().getNews();
+                for( int i = 0; i < news.size(); i++){
+
+                    String id = news.get(i).get_id();
+                    String author = news.get(i).getAuthor();
+                    String title = news.get(i).getTitle();
+                    NewsArticle newsArticle = new NewsArticle(id, title, author, R.drawable.news1);
+                    articles.add(newsArticle);
+
+
                 }
+
                 final NewsAdapter adapter = new NewsAdapter(fragmentBelongActivity, articles);
                 RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(fragmentBelongActivity);
                 recyclerView.setLayoutManager(mLayoutManager);
@@ -102,12 +125,17 @@ public class FragmentDisplayArticles extends Fragment {
             }
 
             @Override
-            public void onFailure(Call<Feed> call, Throwable t) {
-                Toast.makeText(fragmentBelongActivity, "Something went wrong", Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<Data> call, Throwable t) {
+                t.printStackTrace();
+                Log.d("123", t.getMessage());
+                Toast.makeText(getContext(),"failed",Toast.LENGTH_LONG).show();
             }
+
         });
 
     }
+
+
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {

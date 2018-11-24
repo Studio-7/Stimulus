@@ -5,14 +5,19 @@ public class NewsArticle {
     private String mArticleName;
     private String mArticleSummary;
     private int mArticleThumbnail;
+    private String mArticleId;
 
 
-    public NewsArticle(String mArticleName, String mArticleSummary, int mArticleThumbnail) {
+    public NewsArticle(String mArticleId, String mArticleName, String mArticleSummary, int mArticleThumbnail) {
+
 
         this.mArticleName = mArticleName;
         this.mArticleSummary = mArticleSummary;
         this.mArticleThumbnail = mArticleThumbnail;
+        this.mArticleId = mArticleId;
     }
+
+    public String getArticleId() { return mArticleId; }
 
     public String getArticleName() {
         return mArticleName;

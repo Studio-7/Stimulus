@@ -1,13 +1,20 @@
 package com.example.stimulus.Utils;
 
+import android.util.Log;
+
+import com.example.stimulus.Fragment.AuthFragment;
 import com.example.stimulus.contracts.Token;
 
 
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.Hash;
+import org.web3j.crypto.Sign;
 import org.web3j.protocol.Web3j;
+import org.web3j.utils.Numeric;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -59,4 +66,17 @@ public class TokenHandler {
             token = Token.load(tokenAddress, web3j, credentials, BigInteger.valueOf(60000000000L), BigInteger.valueOf(503570L));
         return token;
     }
+
+    public static String signData() throws UnsupportedEncodingException {
+
+        //String privateKey1 = "fba4137335dc20dc23ad3dcd9f4ad728370b09131a6a14abf6c839748700780d";
+        //Credentials credentials = Credentials.create(privateKey1); //credentials
+        //String hash = Hash.sha3(Numeric.toHexStringNoPrefix("TEST".getBytes()));
+        String hash = HexStringConverter.getHexStringConverterInstance().stringToHex("TEST");
+        byte[] data = hash.getBytes();
+        Sign.SignatureData signature = Sign.signMessage(data, AuthFragment.credentials.getEcKeyPair());
+        Log.d("123", signature.toString() +"  " + credentials.getEcKeyPair().getPrivateKey().toString(16));
+        return signature.toString();
+    }
+
 }
