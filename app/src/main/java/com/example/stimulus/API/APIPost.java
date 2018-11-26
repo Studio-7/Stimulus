@@ -14,7 +14,7 @@ public interface APIPost {
 
     @POST("/news/getNews")
     @FormUrlEncoded
-    Call<Data> getData(@Field("sign") String sign, @Field("phrase") String phrase);
+    Call<Data> getData(@Field("sign") String sign, @Field("phrase") String phrase, @Field("mined") String mined);
 
     @Headers("Content-Type: application/json")
     @GET

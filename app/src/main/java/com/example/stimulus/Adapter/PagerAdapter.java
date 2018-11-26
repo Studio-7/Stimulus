@@ -15,8 +15,8 @@ public class PagerAdapter extends FragmentPagerAdapter {
     @Override
     public Fragment getItem(int position) {
         switch (position){
-            case 0: return new FragmentDisplayArticles();
-            case 1: return new FragmentDisplayArticles();
+            case 0: return new FragmentDisplayArticles().newInstance("true");
+            case 1: return new FragmentDisplayArticles().newInstance("false");
         }
         return null;
     }

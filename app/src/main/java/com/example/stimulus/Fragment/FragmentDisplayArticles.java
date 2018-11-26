@@ -27,6 +27,7 @@ import com.example.stimulus.Utils.APIUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Random;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -41,6 +42,36 @@ public class FragmentDisplayArticles extends Fragment {
     ProgressBar mProgress;
     private APIPost mAPIPost;
     private SearchView mSearchView;
+    private String mine;
+    private int[] textureArrayWin = {
+            R.drawable.pattern1,
+            R.drawable.pattern2,
+            R.drawable.pattern3,
+            R.drawable.pattern4,
+            R.drawable.pattern5,
+            R.drawable.pattern6,
+            R.drawable.pattern7,
+            R.drawable.pattern8,
+            R.drawable.pattern9,
+            R.drawable.pattern10,
+    };
+
+    public static FragmentDisplayArticles newInstance(String mine) {
+        Bundle bundle = new Bundle();
+        bundle.putString("mine", mine);
+
+
+        FragmentDisplayArticles fragment = new FragmentDisplayArticles();
+        fragment.setArguments(bundle);
+
+        return fragment;
+    }
+
+    private void readBundle(Bundle bundle) {
+        if (bundle != null) {
+            mine = bundle.getString("mine");
+        }
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -57,6 +88,7 @@ public class FragmentDisplayArticles extends Fragment {
         recyclerView.setVisibility(View.INVISIBLE);
         mAPIPost = APIUtils.getAPIService();
         mSearchView = (SearchView) retView.findViewById(R.id.action_search);
+        readBundle(getArguments());
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -127,12 +159,13 @@ public class FragmentDisplayArticles extends Fragment {
             public void onResponse(Call<Data> call, Response<Data> response) {
                 ArrayList<NewsArticle> search = new ArrayList<>();
                 ArrayList<News> news = response.body().getNews();
+                Random random = new Random();
                 for( int i = 0; i < news.size(); i++){
-
+                    int r = random.nextInt(10);
                     String id = news.get(i).get_id();
                     String author = news.get(i).getAuthor();
                     String title = news.get(i).getTitle();
-                    NewsArticle newsArticle = new NewsArticle(id, title, author, R.drawable.news1);
+                    NewsArticle newsArticle = new NewsArticle(id, title, author, textureArrayWin[r], mine);
                     search.add(newsArticle);
 
 
@@ -173,11 +206,13 @@ public class FragmentDisplayArticles extends Fragment {
 
 
 
-        Call<Data> call = mAPIPost.getData("0x68643896723021f581ec1106da242f3441276134e1667d528fd2459d717af7fc5e5e60463bbc200386b6dcdce553f6be5e06167818d29678d62e4c59a1e454161c", "Qi4RMIiv3YHGBoKZxMWhjfMu0PoOB4vv");
-
-        call.enqueue(new Callback<Data>() {
-            @Override
-            public void onResponse(Call<Data> call, Response<Data> response) {
+        Call<Data> call = mAPIPost.getData("0x68643896723021f581ec1106da242f3441276134e1667d528fd2459d717af7fc5e5e60463bbc200386b6dcdce553f6be5e06167818d29678d62e4c59a1e454161c", "Qi4RMIiv3YHGBoKZxMWhjfMu0PoOB4vv", mine);
+        if(call == null){
+            Toast.makeText(fragmentBelongActivity,"No Articles to display", Toast.LENGTH_LONG).show();
+        } else {
+            call.enqueue(new Callback<Data>() {
+                @Override
+                public void onResponse(Call<Data> call, Response<Data> response) {
 
                 /*ArrayList<Children> childrenList = response.body().getData().getChildren();
                 for( int i = 0; i<childrenList.size(); i++){
@@ -190,40 +225,41 @@ public class FragmentDisplayArticles extends Fragment {
 
 
                 }*/
+                    Random random = new Random();
+                    ArrayList<News> news = response.body().getNews();
+                    for (int i = 0; i < news.size(); i++) {
+                        int r = random.nextInt(10);
+                        String id = news.get(i).get_id();
+                        String author = news.get(i).getAuthor();
+                        String title = news.get(i).getTitle();
+                        NewsArticle newsArticle = new NewsArticle(id, title, author, textureArrayWin[r], mine);
+                        articles.add(newsArticle);
 
-                ArrayList<News> news = response.body().getNews();
-                for( int i = 0; i < news.size(); i++){
 
-                    String id = news.get(i).get_id();
-                    String author = news.get(i).getAuthor();
-                    String title = news.get(i).getTitle();
-                    NewsArticle newsArticle = new NewsArticle(id, title, author, R.drawable.news1);
-                    articles.add(newsArticle);
+                    }
 
-
+                    final NewsAdapter adapter = new NewsAdapter(fragmentBelongActivity, articles);
+                    RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(fragmentBelongActivity);
+                    recyclerView.setLayoutManager(mLayoutManager);
+                    recyclerView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mProgress.setVisibility(View.GONE);
+                            recyclerView.setVisibility(View.VISIBLE);
+                            recyclerView.setAdapter(adapter);
+                        }
+                    });
                 }
 
-                final NewsAdapter adapter = new NewsAdapter(fragmentBelongActivity, articles);
-                RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(fragmentBelongActivity);
-                recyclerView.setLayoutManager(mLayoutManager);
-                recyclerView.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        mProgress.setVisibility(View.GONE);
-                        recyclerView.setVisibility(View.VISIBLE);
-                        recyclerView.setAdapter(adapter);
-                    }
-                });
-            }
+                @Override
+                public void onFailure(Call<Data> call, Throwable t) {
+                    t.printStackTrace();
+                    Log.d("123", t.getMessage());
+                    Toast.makeText(getContext(), "failed", Toast.LENGTH_LONG).show();
+                }
 
-            @Override
-            public void onFailure(Call<Data> call, Throwable t) {
-                t.printStackTrace();
-                Log.d("123", t.getMessage());
-                Toast.makeText(getContext(),"failed",Toast.LENGTH_LONG).show();
-            }
-
-        });
+            });
+        }
 
     }
 

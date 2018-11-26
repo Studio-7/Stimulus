@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -43,6 +44,9 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
         holder.title.setText(article.getArticleName());
         holder.summary.setText(article.getArticleSummary());
         Glide.with(mContext).load(article.getArticleThumbnail()).into(holder.article_thumbnail);
+        if(article.getMined().equalsIgnoreCase("false")) {
+            holder.linearLayout.setVisibility(View.VISIBLE);
+        }
         holder.article_thumbnail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -63,12 +67,14 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
     public class NewsViewHolder extends RecyclerView.ViewHolder {
         public TextView title, summary;
         public ImageView article_thumbnail;
+        public LinearLayout linearLayout;
 
         public NewsViewHolder(View view) {
             super(view);
             title = (TextView) view.findViewById(R.id.title);
             summary = (TextView) view.findViewById(R.id.summary);
             article_thumbnail = (ImageView) view.findViewById(R.id.news_thumbnail);
+            linearLayout = (LinearLayout) view.findViewById(R.id.li_buttons);
         }
     }
 

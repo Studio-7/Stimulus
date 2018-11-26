@@ -6,15 +6,21 @@ public class NewsArticle {
     private String mArticleSummary;
     private int mArticleThumbnail;
     private String mArticleId;
+    private String mined;
 
 
-    public NewsArticle(String mArticleId, String mArticleName, String mArticleSummary, int mArticleThumbnail) {
+    public NewsArticle(String mArticleId, String mArticleName, String mArticleSummary, int mArticleThumbnail, String mined) {
 
 
         this.mArticleName = mArticleName;
         this.mArticleSummary = mArticleSummary;
         this.mArticleThumbnail = mArticleThumbnail;
         this.mArticleId = mArticleId;
+        this.mined = mined;
+    }
+
+    public String getMined() {
+        return mined;
     }
 
     public String getArticleId() { return mArticleId; }
