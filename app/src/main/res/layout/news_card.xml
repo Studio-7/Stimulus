@@ -25,12 +25,37 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:scaleType="fitXY" />
+            <LinearLayout
+                android:id="@+id/li_buttons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_below="@id/news_thumbnail"
+                android:visibility="gone"
+                android:weightSum="2">
+
+                <Button
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="True"
+                    android:textColor="#FFFFFF"
+                    android:layout_weight="1"
+                    android:background="@drawable/shape"/>
+                <Button
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="False"
+                    android:textColor="#FFFFFF"
+                    android:layout_weight="1"
+                    android:background="@drawable/shape"/>
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/news_thumbnail"
+                android:layout_below="@id/li_buttons"
                 android:paddingLeft="@dimen/news_title_padding"
                 android:paddingRight="@dimen/news_title_padding"
                 android:paddingTop="@dimen/news_title_padding"
